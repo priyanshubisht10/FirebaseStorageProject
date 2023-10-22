@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "571693919187",
+    "project_id": "storage-project-6fba3",
+    "storage_bucket": "storage-project-6fba3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:571693919187:android:edff8c7b6baba59b5add26",
+        "android_client_info": {
+          "package_name": "com.example.storage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsLD_XuQsTbsWIaZjsRW9R-IQP73rxEqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

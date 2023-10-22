@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="100dp"
+    android:layout_gravity="center"
+    tools:context=".PostActivity">
+
+    <ImageView
+        android:id="@+id/gallery_image"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@color/design_default_color_primary_dark"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/select_img_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintDimensionRatio="16:9"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:srcCompat="@tools:sample/avatars"
+        />
+
+    <Button
+        android:id="@+id/select_img_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Select Image from gallery"
+        app:layout_constraintTop_toBottomOf="@id/gallery_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <Button
+        android:id="@+id/post_img_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Post Image"
+        app:layout_constraintTop_toBottomOf="@id/select_img_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5" />
+
+    <Button
+        android:id="@+id/feedActivity"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Feed"
+        app:layout_constraintTop_toBottomOf="@id/post_img_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
