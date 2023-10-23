@@ -1,13 +1,13 @@
 package com.example.storage
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Adapter
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var postsAdapter: Adapter
     private lateinit var postRecyclerView: RecyclerView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,9 +17,7 @@ class MainActivity : AppCompatActivity() {
 
         val Posts = generateList(10)
 
-        postsAdapter = Adapter(this,Posts)
-
-        postRecyclerView.adapter = postsAdapter
+        postRecyclerView.adapter = Adapter(this,Posts)
         postRecyclerView.layoutManager = LinearLayoutManager(this)
     }
 

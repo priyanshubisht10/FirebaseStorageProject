@@ -3,28 +3,50 @@ package com.example.storage
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import com.example.storage.databinding.ActivityPostBinding
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.UploadTask
+import java.io.ByteArrayOutputStream
+import kotlin.random.Random
+
+val storage = FirebaseStorage.getInstance()
+val storageRef: StorageReference = storage.reference
+
+val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+val post: CollectionReference = db.collection("Posts")
 
 class PostActivity : AppCompatActivity() {
     private lateinit var selectImg: Button
-    private lateinit var postBtn: Button
     private lateinit var imageView: ImageView
     private lateinit var feedActivitybtn: Button
+    private lateinit var binding: ActivityPostBinding
+    private lateinit var captionEdittext: EditText
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_post)
+
+        binding = ActivityPostBinding.inflate(layoutInflater)
+
+        setContentView(binding.root)
 
         selectImg = findViewById(R.id.select_img_btn)
-        postBtn = findViewById(R.id.post_img_btn)
         imageView = findViewById(R.id.gallery_image)
         feedActivitybtn = findViewById(R.id.feedActivity)
 
@@ -35,8 +57,7 @@ class PostActivity : AppCompatActivity() {
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestStoragePermission()
-            }
-            else {
+            } else {
                 val pickIntent =
                     Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                 opengalleryLauncher.launch(pickIntent)
@@ -49,7 +70,19 @@ class PostActivity : AppCompatActivity() {
             // finish()  // Uncomment this line if you want to finish the current activity
         }
 
+        captionEdittext = findViewById(R.id.post_description)
 
+        binding.postImgBtn.setOnClickListener {
+            uploadImage(
+                imageView,
+                "image${
+                    generateRandomString(
+                        10,
+                        "qwertyuiopasdfghjklzxcvbnm,QWERTYUIOPASDFGHJKLZXCVBNM,.1234567890"
+                    )
+                }"
+            )
+        }
     }
 
     private val opengalleryLauncher: ActivityResultLauncher<Intent> =
@@ -105,6 +138,74 @@ class PostActivity : AppCompatActivity() {
         builder.create().show()
     }
 
+    fun uploadImage(imageView: ImageView, imageName: String){
+        // Get the drawable from the ImageView
+        val drawable = imageView.drawable
+        if (drawable != null) {
+            val bitmap = (drawable as BitmapDrawable).bitmap
+
+            // Convert the bitmap to a byte array
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+            val data = baos.toByteArray()
+
+            // Create a reference to the image in Firebase Storage
+            val imageRef: StorageReference = storageRef.child("images/$imageName.jpg")
+            val post: CollectionReference = db.collection("Posts")
 
 
+            // Upload the image
+            val uploadTask: UploadTask = imageRef.putBytes(data)
+
+            uploadTask.addOnSuccessListener { taskSnapshot ->
+                // Image uploaded successfully
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    // Get the download URL (URI) of the uploaded image
+                    val downloadUrl = uri.toString()
+
+                    val data = hashMapOf(
+                        "key" to imageName,
+                        "caption" to captionEdittext.text.toString(),
+                        "imageUri" to downloadUrl
+                    )
+                    post.add(data)
+                        .addOnSuccessListener { documentReference ->
+                            Toast.makeText(
+                                this,
+                                "Post Data Uploaded Successfully",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                this,
+                                e.message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                    Toast.makeText(this, "Image Uploaded Successfully", Toast.LENGTH_SHORT).show()
+
+                    // You can now use the download URL as needed (e.g., store it in a database or display it to the user)
+                    // For example, you can save the URL to a Firestore database, if you're using Firestore.
+                }.addOnFailureListener { exception ->
+                    Toast.makeText(this, "Image Not Uploaded Successfully", Toast.LENGTH_SHORT)
+                        .show()
+                    // Handle any errors that may occur when getting the download URL
+                }
+            }.addOnFailureListener { exception ->
+                // Handle any errors that may occur during the upload
+                Toast.makeText(this, "Image Not Uploaded Successfully", Toast.LENGTH_SHORT).show()
+            }
+
+        }
+
+    }
+
+    fun generateRandomString(length: Int, characterPool: String): String {
+        val random = Random.Default
+        return (1..length)
+            .map { characterPool[random.nextInt(0, characterPool.length)] }
+            .joinToString("")
+    }
 }
