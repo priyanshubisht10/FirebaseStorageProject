@@ -17,7 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import com.example.storage.databinding.ActivityPostBinding
-import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -28,9 +28,6 @@ import kotlin.random.Random
 val storage = FirebaseStorage.getInstance()
 val storageRef: StorageReference = storage.reference
 
-val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-val post: CollectionReference = db.collection("Posts")
-
 class PostActivity : AppCompatActivity() {
     private lateinit var selectImg: Button
     private lateinit var imageView: ImageView
@@ -38,6 +35,7 @@ class PostActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPostBinding
     private lateinit var captionEdittext: EditText
 
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,19 +68,23 @@ class PostActivity : AppCompatActivity() {
             // finish()  // Uncomment this line if you want to finish the current activity
         }
 
-        captionEdittext = findViewById(R.id.post_description)
+
 
         binding.postImgBtn.setOnClickListener {
+            captionEdittext = findViewById(R.id.post_description)
+            val caption: String = captionEdittext.text.toString()
+            val imageName: String = generateRandomString(
+                10,
+                "qwertyuiopasdfghjklzxcvbnm,QWERTYUIOPASDFGHJKLZXCVBNM,.1234567890"
+            )
             uploadImage(
                 imageView,
-                "image${
-                    generateRandomString(
-                        10,
-                        "qwertyuiopasdfghjklzxcvbnm,QWERTYUIOPASDFGHJKLZXCVBNM,.1234567890"
-                    )
-                }"
+                imageName,
+                caption
             )
+//            uploadData(imageName,captionEdittext.toString())
         }
+
     }
 
     private val opengalleryLauncher: ActivityResultLauncher<Intent> =
@@ -138,7 +140,7 @@ class PostActivity : AppCompatActivity() {
         builder.create().show()
     }
 
-    fun uploadImage(imageView: ImageView, imageName: String){
+    private fun uploadImage(imageView: ImageView, imageName: String,caption: String) {
         // Get the drawable from the ImageView
         val drawable = imageView.drawable
         if (drawable != null) {
@@ -151,7 +153,6 @@ class PostActivity : AppCompatActivity() {
 
             // Create a reference to the image in Firebase Storage
             val imageRef: StorageReference = storageRef.child("images/$imageName.jpg")
-            val post: CollectionReference = db.collection("Posts")
 
 
             // Upload the image
@@ -162,13 +163,15 @@ class PostActivity : AppCompatActivity() {
                 imageRef.downloadUrl.addOnSuccessListener { uri ->
                     // Get the download URL (URI) of the uploaded image
                     val downloadUrl = uri.toString()
+                    Toast.makeText(this, "Image Uploaded Successfully", Toast.LENGTH_SHORT).show()
 
-                    val data = hashMapOf(
+                    val post: DocumentReference = db.collection("Posts").document()
+                    val postInfo = mapOf(
                         "key" to imageName,
-                        "caption" to captionEdittext.text.toString(),
+                        "caption" to caption,
                         "imageUri" to downloadUrl
                     )
-                    post.add(data)
+                    post.set(postInfo)
                         .addOnSuccessListener { documentReference ->
                             Toast.makeText(
                                 this,
@@ -183,9 +186,6 @@ class PostActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-
-                    Toast.makeText(this, "Image Uploaded Successfully", Toast.LENGTH_SHORT).show()
-
                     // You can now use the download URL as needed (e.g., store it in a database or display it to the user)
                     // For example, you can save the URL to a Firestore database, if you're using Firestore.
                 }.addOnFailureListener { exception ->
@@ -202,10 +202,34 @@ class PostActivity : AppCompatActivity() {
 
     }
 
-    fun generateRandomString(length: Int, characterPool: String): String {
+    private fun generateRandomString(length: Int, characterPool: String): String {
         val random = Random.Default
         return (1..length)
             .map { characterPool[random.nextInt(0, characterPool.length)] }
             .joinToString("")
     }
+
+//    fun uploadData(imageName: String,caption: String ) {
+//        val post: DocumentReference = db.collection("Posts").document()
+//        val postInfo = mapOf(
+//            "key" to imageName,
+//            "caption" to caption,
+//            "imageUri" to downloadUrl
+//        )
+//        post.set(postInfo)
+//            .addOnSuccessListener { documentReference ->
+//                Toast.makeText(
+//                    this,
+//                    "Post Data Uploaded Successfully",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//            }
+//            .addOnFailureListener { e ->
+//                Toast.makeText(
+//                    this,
+//                    e.message,
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//            }
+//    }
 }
